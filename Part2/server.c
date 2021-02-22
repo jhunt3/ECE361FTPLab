@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	};
 
 	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET6; // set to AF_INET to use IPv4
+	hints.ai_family = AF_UNSPEC; // set to AF_INET to use IPv4
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 						printf("\nSize: %d\n",fragSize);
 					}else if(stage==3){
 						strcpy(filename,value);
-						char fn[100]="/home/jeremy/Documents/UofT4/ECE361/FTPLab/Part2/serverstorage/";
+						char fn[100]="/nfs/ug/homes-1/h/huntjere/ECE361/ECE361FTPLab/Part2/serverstorage/";
 						strcat(fn,filename);
 						printf("\nFile Name: %s\n",fn);
 						if(fragNo==1){
