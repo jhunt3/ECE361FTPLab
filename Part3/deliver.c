@@ -210,11 +210,15 @@ int main(int argc, char *argv[])
 		memcpy(&packStr[sizeof(char)*strlen(metadata)], pack.filedata, pack.size);
 		printf("%s\n",packStr);
 		fcntl(sockfd,F_SETFL, O_NONBLOCK);
+		
+		//flag for if the packet is acknowledged by the server
 		bool transmitted=false;
+		//infinitely try to send if it does not go through
 		for(;;){
 			clock_t start, end;
 			start = clock();
 			printf("Sending packet %d\n",i);
+			//send packet
 			if ((numbytes = sendto(sockfd, packStr, sizeof(packStr), 0,
 				p->ai_addr, p->ai_addrlen)) == -1) {
 				perror("talker: sendto");
@@ -225,13 +229,14 @@ int main(int argc, char *argv[])
 			memset(buf, 0, MAXBUFLEN);
 			//printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
 			addr_len = sizeof their_addr;
-
+			//try to receive packet
 			for(;;){
 				end=clock();
+				//if timeout is reached stop trying to receive packet
 				if((double)(end-start)/CLOCKS_PER_SEC>0.5){
 					break;
 				}
-
+				//if packet is succesfully received, set flag to true and stop trying to receive
 				if(numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
 					(struct sockaddr *)&their_addr, &addr_len)!=-1){
 					transmitted=true;
@@ -253,6 +258,7 @@ int main(int argc, char *argv[])
 					exit(1);
 				}*/
 			}
+			//if ack was received stop trying to send packet
 			if(transmitted==true){
 				break;
 			}
