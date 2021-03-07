@@ -138,6 +138,13 @@ int main(int argc, char *argv[])
 					}else if(stage==3){
 						strcpy(filename,value);
 						char fn[100]="/nfs/ug/homes-1/h/huntjere/ECE361/ECE361FTPLab/Part2/serverstorage/";
+						/*int counter;
+						while(filename[counter] !='\0'){
+							if(filename[counter]=='/'){
+								filename[counter]=':';
+							}
+						}*/
+
 						strcat(fn,filename);
 						printf("\nFile Name: %s\n",fn);
 						if(fragNo==1){

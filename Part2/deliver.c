@@ -194,6 +194,12 @@ int main(int argc, char *argv[])
 		sprintf(numtostr, "%d",pack.size); 
 		strcat(metadata, numtostr);
 		strcat(metadata, ":");
+		/*int counter;
+		while(pack.filename[counter] !='\0'){
+			if(pack.filename[counter]==':'){
+				pack.filename[counter]='/';
+			}
+		}*/
 		strcat(metadata,pack.filename);
 		strcat(metadata, ":");
 		
