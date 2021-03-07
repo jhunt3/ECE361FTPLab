@@ -214,6 +214,7 @@ int main(int argc, char *argv[])
 		for(;;){
 			clock_t start, end;
 			start = clock();
+			printf("Sending packet %d\n",i);
 			if ((numbytes = sendto(sockfd, packStr, sizeof(packStr), 0,
 				p->ai_addr, p->ai_addrlen)) == -1) {
 				perror("talker: sendto");
