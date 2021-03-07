@@ -112,7 +112,8 @@ int main(int argc, char *argv[])
 				perror("recvfrom");
 				exit(1);
 			}
-			printf("Packet:\n");
+			printf("\nPacket: \n");
+			printf("%s\n",buf);
 			int stage = 0;
 			int numPacks;
 			int fragNo;
@@ -122,10 +123,12 @@ int main(int argc, char *argv[])
 			char value[100];
 			char* c;
 			int cnt = 0;
-			for(int i=0; buf[i]!=0;i++){
+			for(int i=0; i<100;i++){
 				//strcpy(c,buf[i]);
 				//c = &buf[i];
+				//printf("i: %d\n",i);
 				if(buf[i]==':'){
+					printf("Stage: %d\n", stage);
 					if(stage==0){
 						numPacks = atoi(value);
 						printf("\nNumber of packs: %d\n",numPacks);	
@@ -137,6 +140,13 @@ int main(int argc, char *argv[])
 						printf("\nSize: %d\n",fragSize);
 					}else if(stage==3){
 						strcpy(filename,value);
+						printf("At filename: %s\n",value);
+						for(int counter = 0; counter<strlen(filename);counter++){
+							if(filename[counter]=='/'){
+								filename[counter]=':';
+							}
+						}
+						printf("Saving to: %s\n",filename);
 						char fn[100]="/nfs/ug/homes-1/h/huntjere/ECE361/ECE361FTPLab/Part2/serverstorage/";
 						strcat(fn,filename);
 						printf("\nFile Name: %s\n",fn);
@@ -161,7 +171,7 @@ int main(int argc, char *argv[])
 					cnt++;
 					//strcat(value,c);
 				}
-				printf("%c",buf[i]);
+				//printf("%c",buf[i]);
 				//buf++;
 			}
 			printf("server: packet is %d bytes long\n", numbytes);

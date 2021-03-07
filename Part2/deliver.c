@@ -142,7 +142,14 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "Invalid command\n");
 	}
 	char* ts = strdup(filepath);
-	char* filename = basename(ts);
+	char filen[100];
+        strcpy(filen, basename(ts));
+	for(int counter = 0; counter<100;counter++){
+		if (filen[counter]==':'){
+			filen[counter]='/';
+		}
+	}
+	char* filename=&filen[0];
 	printf("Sending: %s\n",filename);
 	file=fopen(filepath,"r");
 	fseek(file, 0L, SEEK_END);
@@ -160,7 +167,6 @@ int main(int argc, char *argv[])
 			pack.size = modSize;
 		}
 
-		
 		pack.total_frag = numPacks;
 		pack.frag_no = i+1;
 		pack.filename = filename;
@@ -194,6 +200,8 @@ int main(int argc, char *argv[])
 		sprintf(numtostr, "%d",pack.size); 
 		strcat(metadata, numtostr);
 		strcat(metadata, ":");
+
+		printf("Filename: %s\n",pack.filename);	
 		strcat(metadata,pack.filename);
 		strcat(metadata, ":");
 		
