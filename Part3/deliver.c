@@ -209,6 +209,9 @@ int main(int argc, char *argv[])
 		memcpy(packStr, metadata, sizeof(char)*strlen(metadata));
 		memcpy(&packStr[sizeof(char)*strlen(metadata)], pack.filedata, pack.size);
 		printf("%s\n",packStr);
+		
+		/***Lab3***/
+		//Make socket non-blocking
 		fcntl(sockfd,F_SETFL, O_NONBLOCK);
 		
 		//flag for if the packet is acknowledged by the server
