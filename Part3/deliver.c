@@ -14,6 +14,9 @@
 #include <netdb.h>
 #include <limits.h>
 #include <libgen.h>
+#include <fcntl.h>
+#include <stdbool.h>
+#include <time.h>
 //#define SERVERPORT "4950"	// the port users will be connecting to
 #define MAXBUFLEN 100
 int main(int argc, char *argv[])
@@ -142,14 +145,7 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "Invalid command\n");
 	}
 	char* ts = strdup(filepath);
-	char filen[100];
-        strcpy(filen, basename(ts));
-	for(int counter = 0; counter<100;counter++){
-		if (filen[counter]==':'){
-			filen[counter]='/';
-		}
-	}
-	char* filename=&filen[0];
+	char* filename = basename(ts);
 	printf("Sending: %s\n",filename);
 	file=fopen(filepath,"r");
 	fseek(file, 0L, SEEK_END);
@@ -167,6 +163,7 @@ int main(int argc, char *argv[])
 			pack.size = modSize;
 		}
 
+		
 		pack.total_frag = numPacks;
 		pack.frag_no = i+1;
 		pack.filename = filename;
@@ -200,48 +197,67 @@ int main(int argc, char *argv[])
 		sprintf(numtostr, "%d",pack.size); 
 		strcat(metadata, numtostr);
 		strcat(metadata, ":");
-
-
-		printf("Filename: %s\n",pack.filename);	
-
 		/*int counter;
 		while(pack.filename[counter] !='\0'){
 			if(pack.filename[counter]==':'){
 				pack.filename[counter]='/';
 			}
 		}*/
-
 		strcat(metadata,pack.filename);
 		strcat(metadata, ":");
 		
 		memcpy(packStr, metadata, sizeof(char)*strlen(metadata));
 		memcpy(&packStr[sizeof(char)*strlen(metadata)], pack.filedata, pack.size);
 		printf("%s\n",packStr);
-		if ((numbytes = sendto(sockfd, packStr, sizeof(packStr), 0,
-			 p->ai_addr, p->ai_addrlen)) == -1) {
-			perror("talker: sendto");
-			exit(1);
+		fcntl(sockfd,F_SETFL, O_NONBLOCK);
+		bool transmitted=false;
+		for(;;){
+			clock_t start, end;
+			start = clock();
+			if ((numbytes = sendto(sockfd, packStr, sizeof(packStr), 0,
+				p->ai_addr, p->ai_addrlen)) == -1) {
+				perror("talker: sendto");
+				exit(1);
+			}
+
+			//freeaddrinfo(servinfo);
+			memset(buf, 0, MAXBUFLEN);
+			//printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
+			addr_len = sizeof their_addr;
+
+			for(;;){
+				end=clock();
+				if((double)(end-start)/CLOCKS_PER_SEC>0.5){
+					break;
+				}
+
+				if(numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
+					(struct sockaddr *)&their_addr, &addr_len)!=-1){
+					transmitted=true;
+					printf("Received: ");
+					printf(buf);
+					printf(" in %fs\n",(double)(end-start)/CLOCKS_PER_SEC);
+					if(strcmp(buf,"ACK")==0){
+						fprintf(stdout, "Packet Acknowledged, continuing...\n");
+					}else{
+						fprintf(stdout, "Packet delivery failed.\n");
+					}
+
+
+					break;
+				}
+				/*if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
+					(struct sockaddr *)&their_addr, &addr_len)) == -1) {
+					perror("recvfrom");
+					exit(1);
+				}*/
+			}
+			if(transmitted==true){
+				break;
+			}
 		}
 
-		//freeaddrinfo(servinfo);
-		memset(buf, 0, MAXBUFLEN);
-		printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
-		addr_len = sizeof their_addr;
-		if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
-			 (struct sockaddr *)&their_addr, &addr_len)) == -1) {
-			perror("recvfrom");
-			exit(1);
-		}
-		printf("Received: ");
-		printf(buf);
-		printf("\n");
-		if(strcmp(buf,"ACK")==0){
-			fprintf(stdout, "Packet Acknowledged, continuing...\n");
-		}else{
-			fprintf(stdout, "Packet delivery failed.\n");
-		}
-
-
+	
 	}
 
 	close(sockfd);
